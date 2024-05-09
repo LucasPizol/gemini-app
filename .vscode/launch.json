@@ -1,0 +1,10 @@
+{
+  "configurations": [
+    {
+      "name": "environment",
+      "request": "launch",
+      "type": "dart",
+      "toolArgs": ["--dart-define-from-file", ".env"]
+    }
+  ]
+}
