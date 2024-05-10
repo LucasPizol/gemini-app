@@ -15,7 +15,8 @@ class _HomePageState extends State<HomePage> {
   late final GenerativeModel model;
   String prompt = "";
   String answer = '';
-  bool loading = false;
+  var lastAnswers = [];
+  var loading = false;
 
   @override
   void initState() {
@@ -40,6 +41,8 @@ class _HomePageState extends State<HomePage> {
                   Text("Aqui você vai ver as informações sobre o Gemini!"),
                 ]),
               ),
+              Visibility(
+                  visible: loading, child: const CircularProgressIndicator()),
               Expanded(
                   child: Container(
                 padding: const EdgeInsets.all(20),
@@ -69,7 +72,9 @@ class _HomePageState extends State<HomePage> {
                               MaterialStateProperty.all<RoundedRectangleBorder>(
                                   RoundedRectangleBorder(
                                       borderRadius: BorderRadius.circular(4),
-                                      side: BorderSide(color: Color.fromARGB(255, 122, 120, 255))))),
+                                      side: BorderSide(
+                                          color: Color.fromARGB(
+                                              255, 122, 120, 255))))),
                       onPressed: () async {
                         if (prompt.isEmpty) {
                           return;
@@ -78,8 +83,20 @@ class _HomePageState extends State<HomePage> {
                         loading = true;
                         setState(() {});
 
-                        var response =
-                            await model.generateContent([Content.text(prompt)]);
+                        var answers = lastAnswers
+                            .map((e) =>
+                                "Usuário: ${e['mine']}\nGemini: ${e['gemini']}")
+                            .join("\n\n");
+
+                        var response = await model.generateContent([
+                          Content.text(
+                              "Continue o chat, provido dentro das tags <chat></chat> (caso não haja chat, responda apenas a mensagem informada).\n\n <chat>$answers</chat>\n\n A nova mensagem do usuário é: $prompt")
+                        ]);
+
+                        lastAnswers.add({
+                          "mine": prompt,
+                          "gemini": response.text!,
+                        });
 
                         if (response.text != null) {
                           answer = response.text!;
